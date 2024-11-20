@@ -1,16 +1,16 @@
 # 2D_FPE_Solver
 
-This repository is a Matlab implemented solver for two dimensional Fokker-Planck equation using alternating direction implicit (ADI) method
+This repository is a Python implemented solver for two dimensional Fokker-Planck equation using alternating direction implicit (ADI) method
 
 ## Usage
 
-1. Uncomment one of the parameters setting section in solve_2D_FPE.m: 
+1. Uncomment one of the parameters setting section in solve_2D_FPE.py: 
     - heat diffusion
     - linear oscillator
     - bimodal oscillator 
     - van der pol oscillator
-2. Run solve_2D_FPE.m
-3. Run movie_scpt.m to see a movie of the solution
+2. Run solve_2D_FPE.py
+3. Run movie_scpt.py to see a movie of the solution
 
 
 ## Self-defined parameters
