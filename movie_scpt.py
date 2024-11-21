@@ -3,37 +3,30 @@
 # Parameters:
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
 
-skip_frame = 2 * 4
-from_top = True
-writeVids = False
-equal_axis = True
-plt.figure('units','pixels','position',np.array([0,0,1280,720]))
-set(plt.gcf(),'Color','white')
-plt.surf(x2,x1,p[:,:,0],'edgecolor','none')
-plt.axis(np.array([x1(1),x1(end()),x2(1),x2(end()),- 0.05,0.2]))
-set(plt.gca(),'nextplot','replacechildren','Visible','on')
-if equal_axis:
-    plt.axis('equal')
+def animate_density(x1,x2,p,file_name='FPE_movie',file_type='gif',fps=50):
+    ### animation
 
-if writeVids:
-    myVideo = VideoWriter('FPE_movie.avi')
-    myVideo.FrameRate = 50
-    myVideo.Quality = 75
-    open_(myVideo)
+    fig = plt.figure(figsize=plt.figaspect(1/2))
+    ax = fig.add_subplot(projection='3d')
 
-for j in np.arange(2,len(t)+skip_frame,skip_frame).reshape(-1):
-    #drawnow
-    plt.surf(x2,x1,p[:,:,j],'edgecolor','none')
-    if from_top:
-        az = 0
-        el = 90
-        view(az,el)
-    if writeVids:
-        writeVideo(myVideo,getframe(gca))
-    else:
-        drawnow
-    #pause(.1)
+    surf = ax.plot_surface(*np.meshgrid(x1,x2), p[:,:,0], 
+                           cmap='jet', rcount=200, ccount=200)
 
-if writeVids:
-    close_(myVideo)
+    ax.set_zlim([0,1.1*np.max(p)])
+    ax.autoscale(False)
+    ax.set(xlabel='x_1', ylabel='x_2', zlabel='P(x_1,x_2,t)')
+
+    def update(i):
+        global surf
+        surf.remove()
+        surf = ax.plot_surface(*np.meshgrid(x1,x2), p[:,:,i], cmap='jet')
+        return surf
+
+    anim = FuncAnimation(fig, update, frames=range(p.shape[-1]))
+    plt.tight_layout()
+    plt.show()
+
+    writer = PillowWriter(fps=fps, bitrate=1800)
+    anim.save(file_name+'.'+file_type, writer=writer)

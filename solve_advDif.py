@@ -22,7 +22,7 @@ def TDMA(a, b, c, d):
 
     # backsubstitution
     for i in range(n-1,0,-1):
-        y[i-1] = g[i-1] - w[i-1]*p[i]
+        y[i-1] = g[i-1] - w[i-1]*y[i]
     return y
     
 def solve_advDif(D1 = None,D2 = None,D11 = None,D22 = None,x1 = None,x2 = None,dt = None,T_end = None,mu = None,sigma = None): 
@@ -33,28 +33,29 @@ def solve_advDif(D1 = None,D2 = None,D11 = None,D22 = None,x1 = None,x2 = None,d
     #mu = [0,10]; sigma = 1/2*eye(2);
     X1,X2 = np.meshgrid(x1,x2)
     # initialize with multivariate normal distribution
-    p[:,:,0] = np.transpose(np.reshape(mvn(mu,sigma).pdf(np.array([X1,X2])),len(x2),len(x1)))
+    p0 = np.reshape(mvn(mu,sigma).pdf(np.dstack((X1,X2))),(N2,N1)).T
+    p[:,:,0] = p0.copy()
     #***done setting initial condition***
     
     # reshape for iterating
-    p = np.reshape(p,N1 * N2,len(t))
+    p = np.reshape(p,(N1 * N2,len(t)))
     #----create matrix 'A' and vector 'b' here (Diffusion+Drift)
     rhs_first = sparse(speye(N1 * N2) + 0.5 * dt * (D1.matrix + D11.matrix))
     rhs_second = sparse(speye(N1 * N2) + 0.5 * dt * (D2.matrix + D22.matrix))
     a_first = - 0.5 * dt * (D2.a + D22.a)
-    b_first = np.transpose(np.ones((N1 * N2,1))) - 0.5 * dt * (D2.b + D22.b)
+    b_first = np.ones(N1 * N2) - 0.5 * dt * (D2.b + D22.b)
     c_first = - 0.5 * dt * (D2.c + D22.c)
     a_second = - 0.5 * dt * (D1.a + D11.a)
-    b_second = np.transpose(np.ones((N1 * N2,1))) - 0.5 * dt * (D1.b + D11.b)
+    b_second = np.ones(N1 * N2) - 0.5 * dt * (D1.b + D11.b)
     c_second = - 0.5 * dt * (D1.c + D11.c)
     for j in range(1,len(t)):
         if j%100 == 0:
             print('Number of Iteration %d out of %d finished...\n' % (j,len(t)))
         #----solve for p[:,j]=....
-        reshaped_r = np.reshape(np.transpose(np.reshape(rhs_first * p[:,j - 1],N1,N2)),N1 * N2,1)
+        reshaped_r = np.reshape(rhs_first * p[:,j - 1],(N1,N2)).T.flatten()
         p_half = TDMA(a_first,b_first,c_first,reshaped_r)
-        reshaped_r = np.reshape(np.transpose(np.reshape(rhs_second * p_half,N2,N1)),N1 * N2,1)
+        reshaped_r = np.reshape(rhs_second * p_half,(N2,N1)).T.flatten()
         p[:,j] = TDMA(a_second,b_second,c_second,reshaped_r)
     
-    p = np.reshape(p,N1,N2,len(t))
+    p = np.reshape(p,(N1,N2,len(t)))
     return t,p

@@ -8,8 +8,8 @@ def make_tridiag(a = None,b = None,c = None):
     if (len(b) != N or len(c) != N):
         raise ValueError('Make sure the length of a, b, c are the same...\n' % ())
     
-    x_indx = np.array([np.arange(1,N),np.arange(N),np.arange(N-1)])
-    y_indx = np.array([np.arange(N-1),np.arange(N),np.arange(1,N)])
-    eles = np.array([a[1:],b,c[:-1]])
+    x_indx = np.concatenate([np.arange(1,N),np.arange(N),np.arange(N-1)],axis=0)
+    y_indx = np.concatenate([np.arange(N-1),np.arange(N),np.arange(1,N)],axis=0)
+    eles = np.concatenate([a[1:],b,c[:-1]],axis=0)
     Mat = sparse((eles,(x_indx,y_indx)),shape = (N,N))
     return Mat
